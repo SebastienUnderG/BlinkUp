@@ -1,0 +1,42 @@
+<html>
+	<head>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+		<script>
+			document.addEventListener("DOMContentLoaded", function() {
+				var colors = ['red', 'blue', 'white'];
+				var number = 1337;
+
+				function dec2bin(dec){
+			    return (dec >>> 0).toString(2);
+				}
+
+				var sequence = dec2bin(number).split("").join("2").split("");
+
+				function play()
+				{
+					console.log("Starting with", sequence);
+					start(sequence);
+				}
+
+				function start(sq){
+
+					if(_.isEmpty(sq))
+						return;
+						
+					var color = colors[_.head(sq)];
+					document.body.style.backgroundColor = color;
+
+					setTimeout(function(){
+						start(_.rest(sq));
+					}, 250);
+				}
+
+				setTimeout(play, 2000);
+			});
+		</script>
+	</head>
+
+	<body>
+		
+	</body>
+</html>
