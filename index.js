@@ -11,6 +11,7 @@ function ColorReader() {
   var h=315;
   var previous;
   var imageCanvas = document.getElementById( 'image-canvas' );
+  var results = document.getElementById('results');
   var imagectx = imageCanvas.getContext('2d');
   
   
@@ -47,8 +48,6 @@ function ColorReader() {
   {
     imageCanvas.height = video.videoHeight;
     imageCanvas.width = video.videoWidth;
-
-    update();
   }
 
   function average(imgData) {
@@ -73,25 +72,30 @@ function ColorReader() {
     listeners.push(listener);
   }
 
+  this.unsubscribe = function(){
+    listeners = [];
+  }
+
+  this.start = function(){
+    update();
+  }
+
+  var nc = nearestColor.from({red: '#f00', white: '#ffF', blue: '#00f'});
+
   function update(){
     
     imagectx.drawImage(video, 0, 0,video.videoWidth, video.videoHeight, 0,0,imageCanvas.width,imageCanvas.height);
     var color = average(imagectx.getImageData(0,0,imageCanvas.width,imageCanvas.height));
 
-    var cur;
-
-    if(color.r > 200 && color.g > 200 && color.b > 200){
-      cur = 'white'
-    } else if(color.r > 200){
-      cur = 'red'
-    } else if(color.b > 200) {
-      cur = 'blue'
-    }
+    var cur = nc(color).name;
 
     if(cur && cur != previous) {
-      listeners.forEach(function(l){
-        l(cur);
-      });
+      if((cur == 'blue' || cur == 'red') && previous == 'white')
+      {
+        listeners.forEach(function(l){
+          l(cur);
+        });
+      }
       previous = cur
     }
 
@@ -99,25 +103,52 @@ function ColorReader() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+function log(text)
+{
+  var li = document.createElement('li');
+  li.appendChild(document.createTextNode(text));
+
+  results.appendChild(li);
+}
+
+function clearLog()
+{
+  results.innerHTML = '';  
+}
+
+var cd;
+
+function start()
+{
+  clearLog();
+
+  if(cd != undefined && cd.cr != undefined)
+    cd.cr.unsubscribe();
+
+  cd = new ColorDecoder();
+}
+
+function ColorDecoder() {
   var cr = new ColorReader();
 
   var all = [];
 
   cr.onChange(function(a){
-    console.log(a);
-
     var colors = ['red', 'blue']
 
-    if(a != 'white')
-      all.push(colors.indexOf(a))
+    log(a);
+
+    all.push(colors.indexOf(a));
 
 
-    var res = _.last(all, 11);
-    if(res.length == 11){
-      var result = res.join("");
+    if(all.length == 16){
+      var result = all.join("");
       var parsed = parseInt(result , 2 );
-      console.log("Received", parsed);
+      log(parsed);
+
+      cr.unsubscribe();
     }
-  })
-});
+  });
+
+  cr.start();
+}

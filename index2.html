@@ -2,41 +2,67 @@
 	<head>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 		<script>
-			document.addEventListener("DOMContentLoaded", function() {
-				var colors = ['red', 'blue', 'white'];
-				var number = 1337;
 
+				document.addEventListener("DOMContentLoaded", function() {
+					var button = document.getElementById("button")
+					button.addEventListener('click', play, this);
+					button.addEventListener('touchend', play, this);
+				});
+			
+				var colors = ['red', 'blue', 'white'];
+				
 				function dec2bin(dec){
 			    return (dec >>> 0).toString(2);
 				}
 
-				var sequence = dec2bin(number).split("").join("2").split("");
-
 				function play()
 				{
+					var number = document.getElementById('number').value;
+
+					if(number > 65535)
+						throw Exception('Number must not exceed 65535')
+
+					var bin = dec2bin(number);
+
+					if(bin.length > 16)
+						throw Exception("Number exceeds bounds of 16 bits")
+
+					var diff = 16 - bin.length
+
+					var sequence = bin.split("").join("2").split("");
+
+					for(var i = 0; i < diff; i++)
+					{
+						sequence.unshift("0");
+					}
+
+					sequence.push("2");
+
 					console.log("Starting with", sequence);
-					start(sequence);
+
+					setTimeout(function(){
+						start(sequence);	
+					}, 2000);
 				}
 
 				function start(sq){
 
-					if(_.isEmpty(sq))
+					if(_.isEmpty(sq)){
 						return;
+					}
 						
 					var color = colors[_.head(sq)];
 					document.body.style.backgroundColor = color;
 
 					setTimeout(function(){
 						start(_.rest(sq));
-					}, 250);
+					}, 100);
 				}
-
-				setTimeout(play, 2000);
-			});
 		</script>
 	</head>
 
 	<body>
-		
+		<input type="number" id="number"/>
+		<button id="button">Start</button>
 	</body>
 </html>
